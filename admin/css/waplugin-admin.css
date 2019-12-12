@@ -1,0 +1,23 @@
+/**
+ * All of the CSS for your admin-specific functionality should be
+ * included in this file.
+ */
+@import url("https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css");
+#wpwrap {
+	background-color: #182139;
+}
+.mt-3 {
+	margin-top: 3px;
+}
+.mynav {
+	box-shadow: 0 .5em 1em -.125em rgba(10,10,10,.1),0 0 0 1px rgba(10,10,10,.02);
+}
+.waplugin-tab-content {
+	display: none;
+}
+.waplugin-tab-content.is-active {
+	display: block;
+}
+.notification {
+	display: none;
+}
