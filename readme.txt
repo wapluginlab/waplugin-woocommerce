@@ -15,8 +15,5 @@ WooCommerce WhatsApp Order Notification
 
 == Changelog ==
 
-= 1.0.1 =
-* add auto update feature
-
 = 1.0.0 =
 * first commit
