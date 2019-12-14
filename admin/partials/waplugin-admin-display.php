@@ -46,6 +46,7 @@
 						    <ul>
 						        <li class="is-active" data-tab="1"><a><?php echo esc_html('API', 'waplugin');?></a></li>
 						        <li data-tab="2"><a><?php echo esc_html('Account', 'waplugin');?></a></li>
+						        <li data-tab="3"><a><?php echo esc_html('Admin', 'waplugin');?></a></li>
 						    </ul>
 						</div>
 						<div class="waplugin-tabs-content">
@@ -94,6 +95,45 @@
 									    </div>
 									</div>
 									<button class="button is-success is-outlined is-fullwidth" id="<?php echo esc_attr('submit-waplugin-account', 'waplugin');?>"><?php echo esc_html('SAVE CHANGES', 'waplugin');?></button>
+								<?php else: ?>
+									<div class="notification is-warning ">
+									    <?php echo esc_html('Whoops! Please add your valid API Key first and make sure you hava active & connected account.', 'waplugin');?>
+									</div>
+								<?php endif ?>
+						    </div>
+						    <!-- Admin -->
+						    <div class="waplugin-tab-content content">
+								<div class="notification is-success waplugin-alert" id="waplugin-admin-valid">
+								    <?php echo esc_html('Success! Admin Data Saved.', 'waplugin');?>
+								</div>
+								<div class="notification is-danger waplugin-alert" id="waplugin-admin-invalid">
+								    <?php echo esc_html('Failed!', 'waplugin');?>
+								</div>
+								<?php if (!empty($waplugin_api) && !empty($accounts)): ?>
+									<div class="field">
+									    <label class="label"><?php echo esc_html('Country', 'waplugin');?></label>
+									    <div class="control">
+									    	<div class="select is-fullwidth">
+												<select name="waplugin_admin_country" required>
+													<option value="" selected disabled>-- <?php echo esc_html('Select Country', 'waplugin');?> --</option>
+													<?php foreach ($countries as $country): ?>
+														<option value="<?php echo esc_attr($country['cca2'], 'waplugin');?>" <?php selected( $waplugin_admin_country, $country['cca2'] ); ?>><?php echo $country['name']['common'];?> <?php echo $country['flag'];?></option>
+													<?php endforeach ?>
+												</select>
+									    	</div>
+									    </div>
+									</div>
+									<div class="field">
+									    <label class="label"><?php echo esc_html('Phone Number', 'waplugin');?></label>
+									    <div class="control">
+									    	<?php if (false === $waplugin_admin_phone): ?>
+									    		<input name="<?php echo esc_attr('waplugin_admin_phone', 'waplugin');?>" class="input" type="text" required>
+									    	<?php else: ?>
+									    		<input name="<?php echo esc_attr('waplugin_admin_phone', 'waplugin');?>" value="<?php echo esc_attr($waplugin_admin_phone, 'waplugin');?>" class="input" type="text" required>
+									    	<?php endif ?>
+									    </div>
+									</div>
+									<button class="button is-success is-outlined is-fullwidth" id="<?php echo esc_attr('submit-waplugin-admin', 'waplugin');?>"><?php echo esc_html('SAVE CHANGES', 'waplugin');?></button>
 								<?php else: ?>
 									<div class="notification is-warning ">
 									    <?php echo esc_html('Whoops! Please add your valid API Key first and make sure you hava active & connected account.', 'waplugin');?>

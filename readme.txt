@@ -15,6 +15,9 @@ WooCommerce WhatsApp Order Notification
 
 == Changelog ==
 
+= 1.0.2 =
+* more improvement
+
 = 1.0.1 =
 * change branch
 

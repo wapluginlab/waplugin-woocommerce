@@ -16,7 +16,7 @@
  * Plugin Name:       WAPLUGIN
  * Plugin URI:        https://github.com/wapluginlab/woocommerce-plugin
  * Description:       Woocommerce order notification via WhatsApp by WAPLUGIN.COM
- * Version:           1.0.1
+ * Version:           1.0.2
  * Author:            WAPLUGIN
  * Author URI:        https://waplugin.com/
  * License:           GPL-2.0+

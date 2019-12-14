@@ -67,7 +67,7 @@
 				    type: "post",
 				    dataType: "json",
 				    url: ajax_object.ajaxurl,
-				    data: 'action=check_api_key&sid=' + ajax_object.ajax_nonce + '&waplugin_api=' +api,
+				    data: 'action=waplugin_check_api_key&sid=' + ajax_object.ajax_nonce + '&waplugin_api=' +api,
 				    success: function(response) {
 				    	btn.removeClass('is-loading');
 				    	if (response.success) {
@@ -94,7 +94,7 @@
 				    type: "post",
 				    dataType: "json",
 				    url: ajax_object.ajaxurl,
-				    data: 'action=add_account&sid=' + ajax_object.ajax_nonce + '&waplugin_account_id=' +account_id,
+				    data: 'action=waplugin_add_account&sid=' + ajax_object.ajax_nonce + '&waplugin_account_id=' +account_id,
 				    success: function(response) {
 				    	btn.removeClass('is-loading');
 				    	if (response.success) {
@@ -108,6 +108,34 @@
 				});
 			} else {
 				alert('Account is required!');
+			}
+		});
+		// Save Admin phone
+		$( "#submit-waplugin-admin" ).on( "click", function(e) {
+			e.preventDefault();
+			var country = $("select[name=waplugin_admin_country]").val();
+			var phone = $("input[name=waplugin_admin_phone]").val();
+			var btn = $(this);
+			btn.addClass('is-loading');
+			if (country.length && country != '' && phone.length && phone != '') {
+				$.ajax({
+				    type: "post",
+				    dataType: "json",
+				    url: ajax_object.ajaxurl,
+				    data: 'action=waplugin_save_admin&sid=' + ajax_object.ajax_nonce + '&waplugin_admin_country=' +country+'&waplugin_admin_phone='+phone,
+				    success: function(response) {
+				    	btn.removeClass('is-loading');
+				    	if (response.success) {
+				    		waplugin_show_alert('waplugin-admin-valid');
+				    		waplugin_close_alert('waplugin-admin-valid');
+				    	} else {
+				    		waplugin_show_alert('waplugin-admin-invalid');
+				    		waplugin_close_alert('waplugin-admin-invalid', false);
+				    	}
+				    }
+				});
+			} else {
+				alert('Country & Phone number is required!');
 			}
 		});
 	});

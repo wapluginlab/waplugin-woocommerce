@@ -51,6 +51,9 @@ class Waplugin_Notif {
             '{status}',
             '{bank_accounts}',
             '{items}',
+            '{site_name}',
+            '{phone}',
+            '{email}',
         ];
 
         $values = [
@@ -62,6 +65,9 @@ class Waplugin_Notif {
             ucfirst($data['status']),
             $banks,
             $allItem,
+            get_bloginfo( 'name' ),
+            $data['billing']['phone'],
+            $data['billing']['email'],
         ];
 
         return str_replace($shortcodes, $values, $text);
@@ -81,10 +87,22 @@ class Waplugin_Notif {
             if ($data['status'] == 'on-hold') {
                 // New Order
                 $text  = get_option( 'waplugin_tab_new_order');
+                if (false === $text && empty($text) && $text == '')
+                    return;
+
+                // Admin Content
+                $adminText  = get_option( 'waplugin_tab_new_order_admin');
+                if (false !== $adminText && !empty($adminText) && $adminText != '') {
+                    $contentAdmin = $this->replacer($adminText, $data, $items);
+                }
+
                 $content = $this->replacer($text, $data, $items);
             } else {
                 // Order status has changed
                 $text  = get_option( 'waplugin_tab_order_status_changed');
+                if (false === $text && empty($text) && $text == '')
+                    return;
+
                 $content = $this->replacer($text, $data, $items);
             }
 
@@ -109,6 +127,17 @@ class Waplugin_Notif {
                             ];
                             $sendMessage = $api_requestor->post('/wa/send-message/'.$account, $api, $sd);
                         }
+                    }
+                }
+                // Send notif to Admin
+                if (isset($contentAdmin)) {
+                    $waplugin_admin_phone = get_option( 'waplugin_admin_phone' );
+                    if (false !== $waplugin_admin_phone) {
+                        $asd = [
+                            'phone' => $waplugin_admin_phone,
+                            'msg' => $contentAdmin,
+                        ];
+                        $api_requestor->post('/wa/send-message/'.$account, $api, $asd);
                     }
                 }
             }

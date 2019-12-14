@@ -130,8 +130,12 @@ class Waplugin_Admin {
 	{
 		wp_cache_delete('waplugin_api', 'options');
 		wp_cache_delete('waplugin_account_id', 'options');
+		wp_cache_delete('waplugin_admin_country', 'options');
+		wp_cache_delete('waplugin_admin_phone', 'options');
 		$waplugin_api = get_option( 'waplugin_api' );
 		$waplugin_account_id = get_option( 'waplugin_account_id' );
+		$waplugin_admin_country = get_option( 'waplugin_admin_country' );
+		$waplugin_admin_phone = get_option( 'waplugin_admin_phone' );
 		$accounts = [];
 		if (false !== $waplugin_api) {
 			try {
@@ -143,11 +147,26 @@ class Waplugin_Admin {
 				// error
 			}
 		}
+
+		$countries = $this->getCountry();
 		include_once 'partials/waplugin-admin-display.php';
 	}
 
+	public function getCountry()
+	{
+		$key = 'waplugin_countries_cache';
+		$query = wp_cache_get($key);
+		if ( !$query ) {
+			$countries = file_get_contents(plugin_dir_path( dirname( __FILE__ ) ) . 'admin/json/countries.json');
+			$query = json_decode($countries, true);
+			wp_cache_set($key, $query);
+		}
+
+		return $query;
+	}
+
 	/*Ajax here*/
-	public function check_api_key()
+	public function waplugin_check_api_key()
 	{
 		check_ajax_referer( date('H'), 'sid' );
 
@@ -162,6 +181,8 @@ class Waplugin_Admin {
 					add_option('waplugin_api', $_POST['waplugin_api'], '', 'no');
 				} else {
 					update_option('waplugin_api', $_POST['waplugin_api']);
+					delete_option('waplugin_account_id');
+					wp_cache_delete('waplugin_account_id', 'options');
 				}
 				echo json_encode(array('success' => true, 'msg' => esc_html( 'Valid', 'waplugin' )));
 			} else {
@@ -174,7 +195,7 @@ class Waplugin_Admin {
 		wp_die();
 	}
 
-	public function add_account()
+	public function waplugin_add_account()
 	{
 		check_ajax_referer( date('H'), 'sid' );
 
@@ -204,6 +225,46 @@ class Waplugin_Admin {
 		wp_die();
 	}
 
+	public function waplugin_save_admin()
+	{
+		check_ajax_referer( date('H'), 'sid' );
+
+		$waplugin_api = get_option( 'waplugin_api' );
+
+		try {
+            $ph = [
+                'phone' => $_POST['waplugin_admin_phone'],
+                'phone_country' => $_POST['waplugin_admin_country'],
+            ];
+            $buildPhone = $this->api_requestor->post('/wa/build-phone-number', $waplugin_api, $ph);
+
+			if (isset($buildPhone['results']['phone']) && !empty($buildPhone['results']['phone'])) {
+				// Valid phone number
+				$waplugin_admin_country = get_option( 'waplugin_admin_country' );
+				if (false === $waplugin_admin_country) {
+					add_option('waplugin_admin_country', $_POST['waplugin_admin_country'], '', 'no');
+				} else {
+					update_option('waplugin_admin_country', $_POST['waplugin_admin_country']);
+				}
+
+				$waplugin_admin_phone = get_option( 'waplugin_admin_phone' );
+				if (false === $waplugin_admin_phone) {
+					add_option('waplugin_admin_phone', $buildPhone['results']['phone'], '', 'no');
+				} else {
+					update_option('waplugin_admin_phone', $buildPhone['results']['phone']);
+				}
+
+				echo json_encode(array('success' => true, 'msg' => esc_html( 'Valid', 'waplugin' )));
+			} else {
+				// Invalid Account
+				echo json_encode(array('success' => false, 'msg' => esc_html( 'Invalid', 'waplugin' )));
+			}
+		} catch (\Exception $e) {
+			echo json_encode(array('success' => false, 'msg' => $e->getMessage()));
+		}
+		wp_die();
+	}
+
 	/*Setting tabs here*/
 	public function waplugin_settings_tab($settings_tabs)
 	{
@@ -214,6 +275,7 @@ class Waplugin_Admin {
 	public function waplugin_settings_tab_content()
 	{
 		woocommerce_admin_fields( $this->waplugin_get_settings() );
+		include_once 'partials/waplugin-admin-setting.php';
 	}
 
 	public function waplugin_get_settings()
@@ -226,20 +288,31 @@ class Waplugin_Admin {
 	            'id'       => 'waplugin_tab_section_title'
 	        ),
 	        'new_order' => array(
-	            'name' => __( 'New Order', 'waplugin' ),
+	            'name' => __( 'New Order (customer)', 'waplugin' ),
 	            'type' => 'textarea',
 	            'desc' => '',
+	            'default' => $this->waplugin_default_setting('waplugin_tab_new_order'),
 	            'css' => 'height: 100px;',
 	            'desc_tip' => __('Send notifications to customers when they successfully place an order', 'waplugin'),
 	            'id'   => 'waplugin_tab_new_order'
 	        ),
 	        'order_status_changed' => array(
-	            'name' => __( 'Order Status Changed', 'waplugin' ),
+	            'name' => __( 'Order Status Changed (customer)', 'waplugin' ),
 	            'type' => 'textarea',
 	            'desc' => '',
+	            'default' => $this->waplugin_default_setting('waplugin_tab_order_status_changed'),
 	            'css' => 'height: 100px;',
 	            'desc_tip' => __('Send notifications to customers when order status changes', 'waplugin'),
 	            'id'   => 'waplugin_tab_order_status_changed'
+	        ),
+	        'new_order_admin' => array(
+	            'name' => __( 'New Order (admin)', 'waplugin' ),
+	            'type' => 'textarea',
+	            'desc' => '',
+	            'default' => $this->waplugin_default_setting('waplugin_tab_new_order_admin'),
+	            'css' => 'height: 100px;',
+	            'desc_tip' => __('Send notifications to admin when customers successfully place an order', 'waplugin'),
+	            'id'   => 'waplugin_tab_new_order_admin'
 	        ),
 	        'section_end' => array(
 				'type' => 'sectionend',
@@ -247,6 +320,41 @@ class Waplugin_Admin {
 	        )
 	    );
 	    return apply_filters( 'wc_settings_tab_waplugin_settings', $settings );
+	}
+
+	public function waplugin_default_setting($section)
+	{
+		// Admin New Order Content
+		$adminNewOrder = "Hi *{site_name}*";
+		$adminNewOrder.= "\n\nYou have a new order, this is the order detail:";
+		$adminNewOrder.= "\n\n{items}";
+		$adminNewOrder.= "\n\nOrder ID: *#{order_id}*\nTotal: *{total}*\nPayment Method: *{payment_method}*";
+		$adminNewOrder.= "\n\nCustomer";
+		$adminNewOrder.= "\n\nName: *{first_name} {last_name}*\nPhone: *{phone}*\nEmail: *{email}*";
+
+		// Customer new order content
+		$custNewOrder = "Hi *{first_name} {last_name}*";
+		$custNewOrder.= "\n\nThank you for your order, this is your order detail:";
+		$custNewOrder.= "\n\n{items}";
+		$custNewOrder.= "\n\nOrder ID: *#{order_id}*\nTotal: *{total}*\nPayment Method: *{payment_method}*";
+		$custNewOrder.= "\n\nPlease make a payment into our bank account:";
+		$custNewOrder.= "\n{bank_accounts}";
+		$custNewOrder.= "\n\n{site_name}";
+
+		// Customer order status updated
+		$custOrderUpdated = "Hi *{first_name} {last_name}*";
+		$custOrderUpdated.= "\n\nYour order status has changed!";
+		$custOrderUpdated.= "\n\n{items}";
+		$custOrderUpdated.= "\n\nOrder ID: *#{order_id}*\nTotal: *{total}*\nPayment Method: *{payment_method}*\nStatus: *{status}*";
+		$custOrderUpdated.= "\n\n{site_name}";
+
+		$datas = [
+			'waplugin_tab_new_order_admin' => $adminNewOrder,
+			'waplugin_tab_new_order' => $custNewOrder,
+			'waplugin_tab_order_status_changed' => $custOrderUpdated,
+		];
+
+		return $datas[$section];
 	}
 
 	public function waplugin_tab_update_settings()

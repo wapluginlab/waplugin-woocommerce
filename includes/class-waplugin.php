@@ -167,8 +167,9 @@ class Waplugin {
 		$this->loader->add_action( 'admin_menu', $plugin_admin, 'waplugin_menu' );
 
 		// Ajax
-		$this->loader->add_action( 'wp_ajax_check_api_key', $plugin_admin, 'check_api_key' );
-		$this->loader->add_action( 'wp_ajax_add_account', $plugin_admin, 'add_account' );
+		$this->loader->add_action( 'wp_ajax_waplugin_check_api_key', $plugin_admin, 'waplugin_check_api_key' );
+		$this->loader->add_action( 'wp_ajax_waplugin_add_account', $plugin_admin, 'waplugin_add_account' );
+		$this->loader->add_action( 'wp_ajax_waplugin_save_admin', $plugin_admin, 'waplugin_save_admin' );
 
 		// Woocommerce setting tabs
 		$this->loader->add_filter( 'woocommerce_settings_tabs_array', $plugin_admin, 'waplugin_settings_tab', 50 );
